@@ -1,0 +1,28 @@
+# 機密・環境
+.env
+*.env
+!*.env.sample
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# OS / エディタ
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# 出力・一時
+*.tmp
+*.log
+result.json
+out/
