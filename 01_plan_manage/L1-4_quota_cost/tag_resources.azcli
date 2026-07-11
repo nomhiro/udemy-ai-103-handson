@@ -1,0 +1,35 @@
+# L1-4 実践(3/3): コスト按分のためのタグ付与 (Azure CLI)
+# タグは Cost Management でコストをプロジェクト/環境/コストセンター別に集計するための基本ツール。
+# 事前に: az login 済み / 対象リソースに Contributor 以上 / 値は自分の環境に置き換える。
+
+# --- 変数 (自分の環境に合わせて変更) ---
+RG="rg-ai103-handson"
+FOUNDRY="<foundry-resource-name>"            # Foundry(Cognitive Services / AIServices) リソース名
+SUB="<your-subscription-id>"
+
+# 1) リソースグループにタグを付ける (タグ継承の起点にもなる)
+az tag create \
+  --resource-id "/subscriptions/$SUB/resourceGroups/$RG" \
+  --tags project=ai103-course env=dev costcenter=training owner=you@example.com
+
+# 2) Foundry リソース単体にタグを付ける (--operation merge で既存タグを保持して追加)
+FOUNDRY_ID=$(az cognitiveservices account show -n "$FOUNDRY" -g "$RG" --query id -o tsv)
+az tag update --resource-id "$FOUNDRY_ID" --operation merge \
+  --tags project=ai103-course env=dev costcenter=training
+
+# 3) 付与結果を確認
+az tag list --resource-id "$FOUNDRY_ID" -o jsonc
+
+# --- 参考: Cost Management 側 ---
+# Azure ポータル > Cost Management > Cost analysis で、
+#   Group by = Tag「project」/ または Add filter で Tag=project を選ぶと
+#   タグ別にコストを集計できる。
+# Foundry プロジェクトには `project` タグが自動付与されるため、
+#   プロジェクト単位の chargeback(プレビュー) は手動タグ無しでも可能。
+#
+# 予算アラート(通知のみ。自動遮断のハードリミットは無い):
+# az consumption budget create \
+#   --budget-name "ai103-monthly" --amount 50 --category cost \
+#   --time-grain Monthly --resource-group "$RG" \
+#   --start-date 2026-07-01 --end-date 2027-07-01
+# ※ しきい値通知/Action Group の設定はポータルが分かりやすい。

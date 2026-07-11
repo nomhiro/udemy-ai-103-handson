@@ -1,0 +1,51 @@
+# L1-5 実践 (3): ロール割り当て ＋ local auth 無効化（キーレス化の仕上げ）
+# ※ 変数を自分の環境に置き換え、1行ずつ実行することを推奨。
+# ※ ロール割り当て・local auth 無効化には十分な権限（Owner / User Access Administrator 等）が必要。
+
+SUB="<your-subscription-id>"
+RG="rg-ai103-handson"
+FOUNDRY="<foundry-resource-name>"        # Foundry(Cognitive Services)アカウント名
+PROJECT="<foundry-project-name>"          # プロジェクト名
+
+# 自分のオブジェクトIDを取得
+MY_ID=$(az ad signed-in-user show --query id -o tsv)
+
+# Foundry リソース/プロジェクトのリソースIDを取得
+FOUNDRY_ID=$(az cognitiveservices account show -n "$FOUNDRY" -g "$RG" --query id -o tsv)
+PROJECT_ID="$FOUNDRY_ID/projects/$PROJECT"
+
+# 1) データプレーン: プロジェクトに "Foundry User" を割り当て（main.py 用）
+#    ※ ロール改称中のため "名前" ではなく GUID で指定する（Foundry User = 53ca6127-...）
+az role assignment create \
+  --role "53ca6127-db72-4b80-b1b0-d745d6d5456d" \
+  --assignee-object-id "$MY_ID" --assignee-principal-type User \
+  --scope "$PROJECT_ID"
+
+# 2) 直接推論: Foundry リソースに "Cognitive Services User" を割り当て（keyless_openai_direct.py 用）
+#    ※ Cognitive Services 系ロールは改称対象外なので名前指定でOK
+az role assignment create \
+  --role "Cognitive Services User" \
+  --assignee-object-id "$MY_ID" --assignee-principal-type User \
+  --scope "$FOUNDRY_ID"
+
+# 3) 割り当て確認
+az role assignment list --assignee "$MY_ID" --scope "$FOUNDRY_ID" -o table
+
+# 4) local auth(APIキー) を無効化 = キーレスを強制する（disableLocalAuth=true）
+#    ⚠️ これ以降キー方式は 401 になる。全利用側が Entra ID 認証へ移行済みであることを確認してから実行!
+az resource update --ids "$FOUNDRY_ID" --set properties.disableLocalAuth=true
+
+#    確認: disableLocalAuth が true になっているか
+az resource show --ids "$FOUNDRY_ID" --query "properties.disableLocalAuth"
+
+#    （PowerShell を使う場合の同等操作）
+#    Set-AzCognitiveServicesAccount -ResourceGroupName "<rg>" -Name "<foundry>" -DisableLocalAuth $true
+
+# 5) 既存キーを即時失効させたい場合はキーを再生成（任意）
+# az cognitiveservices account keys regenerate -n "$FOUNDRY" -g "$RG" --key-name Key1
+# az cognitiveservices account keys regenerate -n "$FOUNDRY" -g "$RG" --key-name Key2
+
+# --- 後片付け: 無効化を元に戻す / ロールを外す ---
+# az resource update --ids "$FOUNDRY_ID" --set properties.disableLocalAuth=false
+# az role assignment delete --assignee-object-id "$MY_ID" --role "53ca6127-db72-4b80-b1b0-d745d6d5456d" --scope "$PROJECT_ID"
+# az role assignment delete --assignee-object-id "$MY_ID" --role "Cognitive Services User" --scope "$FOUNDRY_ID"

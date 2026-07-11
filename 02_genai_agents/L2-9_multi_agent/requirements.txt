@@ -1,0 +1,4 @@
+agent-framework-foundry
+aiohttp
+azure-identity
+python-dotenv

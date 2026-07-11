@@ -1,0 +1,84 @@
+# L1-3 実践: Azure CLI でモデルデプロイを「コードで再現」する（IaC の前段／Bicep の代替）。
+#
+# 実行方法: VS Code の Azure CLI 拡張で1行ずつ実行するか、bash にコピペ。
+#   PowerShell の場合は変数代入を $RG="..." のように書き替える（az コマンド自体は同じ）。
+#
+# 認証はキーレス: 事前に `az login` 済みであること（APIキーは使わない）。
+
+# --- 0) 変数（自分の値に置き換える）-------------------------------------------
+RG="ai103-l1-3-rg"
+ACCOUNT="ai103l13foundry"          # Foundry リソース名（サブドメインにも使うため一意・小文字）
+LOCATION="eastus2"
+PROJECT="ai103-l13-proj"           # Foundry project 名
+DEPLOYMENT="chat"                  # 呼び出しに使うデプロイ名（model パラメータに渡す名前）
+
+# --- 1) リソースグループ -----------------------------------------------------
+az group create --name $RG --location $LOCATION
+
+# --- 2) Foundry リソース（親）を作成 -----------------------------------------
+#   --kind AIServices … Foundry リソース
+#   --allow-project-management … Foundry project を作れるようにする
+az cognitiveservices account create \
+  --name $ACCOUNT \
+  --resource-group $RG \
+  --kind AIServices \
+  --sku s0 \
+  --location $LOCATION \
+  --custom-domain $ACCOUNT \
+  --allow-project-management \
+  --assign-identity
+
+# （任意・推奨）キーレス強制: ローカルキー認証を無効化（Entra ID のみ許可）
+az cognitiveservices account update \
+  --name $ACCOUNT \
+  --resource-group $RG \
+  --custom-domain $ACCOUNT \
+  --api-properties disableLocalAuth=true
+
+# --- 3) Foundry project（子＝作業空間）を作成 --------------------------------
+#   --name はアカウント（Foundry リソース）名、--project-name がプロジェクト名。
+az cognitiveservices account project create \
+  --name $ACCOUNT \
+  --resource-group $RG \
+  --project-name $PROJECT \
+  --location $LOCATION
+
+# --- 4) どのモデルが、どの SKU で使えるかを確認（モデル名/バージョンは揮発情報）---
+az cognitiveservices account list-models \
+  --name $ACCOUNT \
+  --resource-group $RG \
+| jq '.[] | { name: .name, format: .format, version: .version, sku: .skus[0].name }'
+
+# --- 5) モデルをデプロイ（デプロイ名を付ける）--------------------------------
+#   --model-name/--model-version/--model-format は手順4で確認した値に置き換える。
+#   --sku-name はデプロイタイプ（GlobalStandard 等）。
+az cognitiveservices account deployment create \
+  --name $ACCOUNT \
+  --resource-group $RG \
+  --deployment-name $DEPLOYMENT \
+  --model-name gpt-4.1-mini \
+  --model-version 2025-04-14 \
+  --model-format OpenAI \
+  --sku-name GlobalStandard \
+  --sku-capacity 10
+
+# --- 6) デプロイ完了の確認（"Succeeded" が返ればOK）--------------------------
+az cognitiveservices account deployment show \
+  --deployment-name $DEPLOYMENT \
+  --name $ACCOUNT \
+  --resource-group $RG \
+| jq '.properties.provisioningState'
+
+# --- 7) 推論エンドポイントを取得（.env の PROJECT_ENDPOINT 等に転記）---------
+az cognitiveservices account show \
+  --name $ACCOUNT \
+  --resource-group $RG \
+| jq -r '.properties.endpoint'
+
+# --- 参考) バージョン自動更新ポリシーの確認（CLI は「読み取り」のみ可）-------
+#   更新は REST / Azure PowerShell / Foundry ポータルで行う（CLI では変更不可）。
+az cognitiveservices account deployment show \
+  --deployment-name $DEPLOYMENT \
+  --name $ACCOUNT \
+  --resource-group $RG \
+| jq '.properties.versionUpgradeOption'

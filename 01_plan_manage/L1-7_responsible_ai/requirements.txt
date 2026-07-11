@@ -1,0 +1,6 @@
+azure-ai-projects>=2.0.0
+azure-identity
+openai>=1.0.0
+python-dotenv
+# 安全性評価 (safety_eval.py)。risk & safety 評価器はホスト型 Foundry Evaluation サービスで動く
+azure-ai-evaluation>=1.0.0

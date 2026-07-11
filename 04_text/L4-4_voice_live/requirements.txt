@@ -1,0 +1,4 @@
+azure-ai-voicelive>=1.2.0b4
+azure-ai-projects>=2.0.0
+azure-identity
+python-dotenv
