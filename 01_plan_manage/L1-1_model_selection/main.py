@@ -14,8 +14,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 PROJECT_ENDPOINT = os.getenv("PROJECT_ENDPOINT")
-MODEL_LARGE = os.getenv("MODEL_LARGE", "gpt-4.1")
-MODEL_SMALL = os.getenv("MODEL_SMALL", "gpt-4.1-mini")
+MODEL_LARGE = os.getenv("MODEL_LARGE", "gpt-5.4")
+MODEL_SMALL = os.getenv("MODEL_SMALL", "gpt-5.4-nano")
 
 # 比較用の共通プロンプト（同一タスク）
 PROMPT = "Azure の Microsoft Foundry とは何かを、初心者向けに3文で説明してください。"
