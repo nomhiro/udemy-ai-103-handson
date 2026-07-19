@@ -56,8 +56,8 @@ az cognitiveservices account deployment create \
   --name $ACCOUNT \
   --resource-group $RG \
   --deployment-name $DEPLOYMENT \
-  --model-name gpt-4.1-mini \
-  --model-version 2025-04-14 \
+  --model-name gpt-5.4-nano \
+  --model-version 2026-03-17 \
   --model-format OpenAI \
   --sku-name GlobalStandard \
   --sku-capacity 10

@@ -16,14 +16,14 @@ az deployment group what-if \
   --resource-group $RG \
   --template-file main.bicep \
   --parameters foundryName=ai103l13foundry projectName=ai103-l13-proj \
-               deploymentName=chat modelName=gpt-4.1-mini modelVersion=2025-04-14
+               deploymentName=chat modelName=gpt-5.4-nano modelVersion=2026-03-17
 
 # 3) 適用（apply）: 問題なければ実際にデプロイ
 az deployment group create \
   --resource-group $RG \
   --template-file main.bicep \
   --parameters foundryName=ai103l13foundry projectName=ai103-l13-proj \
-               deploymentName=chat modelName=gpt-4.1-mini modelVersion=2025-04-14
+               deploymentName=chat modelName=gpt-5.4-nano modelVersion=2026-03-17
 
 # 4) 出力（エンドポイント・デプロイ名）を確認 → .env に転記
 az deployment group show \

@@ -19,11 +19,11 @@ param projectName string = '${foundryName}-proj'
 @description('リソースを作成するリージョン。')
 param location string = resourceGroup().location
 
-@description('デプロイするモデルのカタログ名（例: gpt-4.1-mini）。list-models で確認した値を入れる。')
-param modelName string = 'gpt-4.1-mini'
+@description('デプロイするモデルのカタログ名（例: gpt-5.4-nano）。list-models で確認した値を入れる。')
+param modelName string = 'gpt-5.4-nano'
 
 @description('モデルのバージョン。list-models で確認した値を入れる（揮発情報）。')
-param modelVersion string = '2025-04-14'
+param modelVersion string = '2026-03-17'
 
 @description('モデルプロバイダー（format）。OpenAI モデルは OpenAI。')
 @allowed([
