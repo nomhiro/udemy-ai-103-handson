@@ -29,7 +29,7 @@ az deployment group create `
 az deployment group show `
   --resource-group $RG `
   --name main `
-  | jq '.properties.outputs'
+  --query "properties.outputs" -o json
 
 # 5) 作成されたリソース一覧
 az resource list --resource-group $RG -o table

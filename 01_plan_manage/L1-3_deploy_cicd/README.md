@@ -19,8 +19,8 @@
 
 ## 前提
 - Azure サブスクリプション ／ `az login` 済み ／ Azure CLI（`cognitiveservices` 拡張：`az extension add -n cognitiveservices`）
-- `jq`（CLI 手順の整形に使用。未導入なら https://stedolan.github.io/jq/download/ ）
 - Python 3.11+
+- 出力の整形は az 組み込みの `--query`（JMESPath）＋ `-o table/tsv/json` を使用（`jq` などの外部ツールは不要）
 - シェルは **PowerShell** を前提（`.azcli` は PowerShell の変数記法 `$RG = "..."`・継続行はバッククォート ` で記述）。bash の場合は変数代入を `RG="..."`、継続行を `\` に読み替える。
 
 ## 進め方（どちらか or 両方）

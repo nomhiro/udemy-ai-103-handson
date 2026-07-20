@@ -44,10 +44,11 @@ az cognitiveservices account project create `
   --location $LOCATION
 
 # --- 4) どのモデルが、どの SKU で使えるかを確認（モデル名/バージョンは揮発情報）---
+#   出力の整形は az 組み込みの --query（JMESPath）を使う（jq などの外部ツール不要）。
 az cognitiveservices account list-models `
   --name $ACCOUNT `
   --resource-group $RG `
-  | jq '.[] | { name: .name, format: .format, version: .version, sku: .skus[0].name }'
+  --query "[].{name:name, format:format, version:version, sku:skus[0].name}" -o table
 
 # --- 5) モデルをデプロイ（デプロイ名を付ける）--------------------------------
 #   --model-name/--model-version/--model-format は手順4で確認した値に置き換える。
@@ -67,13 +68,13 @@ az cognitiveservices account deployment show `
   --deployment-name $DEPLOYMENT `
   --name $ACCOUNT `
   --resource-group $RG `
-  | jq '.properties.provisioningState'
+  --query "properties.provisioningState" -o tsv
 
 # --- 7) 推論エンドポイントを取得（.env の PROJECT_ENDPOINT 等に転記）---------
 az cognitiveservices account show `
   --name $ACCOUNT `
   --resource-group $RG `
-  | jq -r '.properties.endpoint'
+  --query "properties.endpoint" -o tsv
 
 # --- 参考) バージョン自動更新ポリシーの確認（CLI は「読み取り」のみ可）-------
 #   更新は REST / Azure PowerShell / Foundry ポータルで行う（CLI では変更不可）。
@@ -81,4 +82,4 @@ az cognitiveservices account deployment show `
   --deployment-name $DEPLOYMENT `
   --name $ACCOUNT `
   --resource-group $RG `
-  | jq '.properties.versionUpgradeOption'
+  --query "properties.versionUpgradeOption" -o tsv
