@@ -83,3 +83,9 @@ az cognitiveservices account deployment show `
   --name $ACCOUNT `
   --resource-group $RG `
   --query "properties.versionUpgradeOption" -o tsv
+
+# --- 8) （任意）後片付け: リソースグループごと削除 --------------------------
+#   Standard（従量）デプロイは「置いておくだけ」では課金されない（課金は呼び出したトークン分だけ）ため、
+#   削除は任意。学習を続けるなら残して次のレクチャーで使い回してよい。
+#   片付けたい場合のみ実行（--yes で確認プロンプトを省略、--no-wait でバックグラウンド削除）。
+az group delete --name $RG --yes --no-wait
