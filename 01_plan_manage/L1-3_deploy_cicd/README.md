@@ -21,22 +21,25 @@
 - Azure サブスクリプション ／ `az login` 済み ／ Azure CLI（`cognitiveservices` 拡張：`az extension add -n cognitiveservices`）
 - `jq`（CLI 手順の整形に使用。未導入なら https://stedolan.github.io/jq/download/ ）
 - Python 3.11+
+- シェルは **PowerShell** を前提（`.azcli` は PowerShell の変数記法 `$RG = "..."`・継続行はバッククォート ` で記述）。bash の場合は変数代入を `RG="..."`、継続行を `\` に読み替える。
 
 ## 進め方（どちらか or 両方）
 **A. CLI で作る**
-1. `deploy_model.azcli` の変数（RG/ACCOUNT/LOCATION 等）を自分の値に置換。
-2. 上から1行ずつ実行（手順4の `list-models` でモデル名/バージョンを確認してから手順5を実行）。
+1. `deploy_model.azcli` の変数（`$RG` / `$ACCOUNT` / `$LOCATION` 等）を自分の値に置換。
+2. 上から1コマンドずつ実行（手順4の `list-models` でモデル名/バージョンを確認してから手順5を実行）。
 
 **B. Bicep（IaC）で作る**
 1. `deploy_bicep.azcli` の変数を置換し、`what-if` → `create` を実行。
 2. 出力（`foundryEndpoint` / `deploymentNameOut`）を控える。
 
-**共通: スモークテスト**
-```bash
+> ⚠️ A と B は**同じ構成**を作ります。両方を試すなら、片方は `what-if`（プレビュー）までに留めると、同名リソースの重複・衝突を避けられます。
+
+**共通: スモークテスト（PowerShell）**
+```powershell
 python -m venv .venv
-. .venv/Scripts/activate        # macOS/Linux: source .venv/bin/activate
+.\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-cp .env.sample .env             # Windows: copy .env.sample .env
+Copy-Item .env.sample .env
 # .env に PROJECT_ENDPOINT と DEPLOYMENT_NAME を設定してから:
 python main.py
 ```
@@ -44,9 +47,9 @@ python main.py
 **CI/CD 雛形（任意）**
 - `github-workflow-sample/evaluate-and-deploy.yml` をリポジトリ直下 `.github/workflows/` にコピーし、OIDC（キーレス）と各リポジトリ変数を設定すると、PR で評価ゲート・main で評価→デプロイが動きます。
 
-## 後片付け（課金回避）
-作成したリソースグループを丸ごと削除します（デプロイ・リソースは課金対象）。
-```bash
+## 後片付け（任意）
+Standard（従量）デプロイは、**モデルを置いておくだけでは課金されません**（課金は実際に呼び出したトークン分だけ）。慌てて削除する必要はなく、学習を続けるならそのまま使い回せます。片付けたくなったら、リソースグループごと削除すればまとめて消せます。
+```powershell
 az group delete --name ai103-l1-3-rg
 ```
 
