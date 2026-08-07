@@ -21,8 +21,8 @@ LOCATION = os.getenv("QUOTA_LOCATION", "eastus")
 API_VERSION = "2024-10-01"  # ※収録時に最新の api-version を確認
 
 # Model Capacities API 用 (任意)
-MODEL_NAME = os.getenv("MODEL_NAME", "gpt-4o")
-MODEL_VERSION = os.getenv("MODEL_VERSION", "2024-08-06")
+MODEL_NAME = os.getenv("MODEL_NAME", "gpt-5.4")
+MODEL_VERSION = os.getenv("MODEL_VERSION", "2026-03-05")
 MODEL_FORMAT = os.getenv("MODEL_FORMAT", "OpenAI")
 
 ARM = "https://management.azure.com"
@@ -48,7 +48,7 @@ def list_usages():
     shown = 0
     for item in usages:
         if item.get("limit", 0) > 0:
-            name = item["name"]["localizedValue"]  # 例: "Tokens Per Minute (thousands) - gpt-4o"
+            name = item["name"]["localizedValue"]  # 例: "Tokens Per Minute (thousands) - gpt-5.4"
             print(f"{name}: {item['currentValue']}/{item['limit']}")
             shown += 1
     if shown == 0:

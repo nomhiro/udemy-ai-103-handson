@@ -19,24 +19,24 @@
 - ロール：クォータ閲覧は **Cognitive Services Usages Reader**（サブスクリプションスコープ）、タグ付与は対象リソースに **Contributor** 以上
 - 比較対象のモデルが Foundry プロジェクトにデプロイ済み（`MODEL_DEPLOYMENT`）
 
-## 進め方
-```bash
+## 進め方（PowerShell）
+```powershell
 python -m venv .venv
-. .venv/Scripts/activate        # macOS/Linux: source .venv/bin/activate
+. .venv\Scripts\Activate.ps1     # macOS/Linux: source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.sample .env             # Windows: copy .env.sample .env
+copy .env.sample .env            # macOS/Linux: cp .env.sample .env
 # .env を編集してから:
 
-python check_quota.py           # クォータ消費 / 空き容量を表示
-python retry_demo.py            # SDK / 手動 両方のリトライで推論
-bash tag_resources.azcli        # ※ 変数を自分の環境に置換してから1行ずつ実行推奨
+python check_quota.py            # クォータ消費 / 空き容量を表示
+python retry_demo.py             # SDK / 手動 両方のリトライで推論
+# tag_resources.azcli は PowerShell 前提。変数を置換してから1行ずつ実行推奨
 ```
 
 ## 期待される出力（例）
 `check_quota.py`：
 ```
 ===== クォータ消費 / 上限 (eastus) =====
-Tokens Per Minute (thousands) - gpt-4o: 0/150
+Tokens Per Minute (thousands) - gpt-5.4: 0/150
 ...
 ```
 `retry_demo.py`：通常は 429 なしで成功（`max_retries` 設定により、429 が出れば自動でバックオフ再試行）。

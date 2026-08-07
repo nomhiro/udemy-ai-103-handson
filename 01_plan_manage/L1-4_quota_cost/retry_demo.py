@@ -24,7 +24,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 PROJECT_ENDPOINT = os.getenv("PROJECT_ENDPOINT")
-MODEL = os.getenv("MODEL_DEPLOYMENT", "gpt-4.1")  # デプロイ名 (カタログ名ではない)
+MODEL = os.getenv("MODEL_DEPLOYMENT", "gpt-5.4")  # デプロイ名 (カタログ名ではない)
 PROMPT = "クォータとレート制限の違いを1文で説明してください。"
 
 project = AIProjectClient(endpoint=PROJECT_ENDPOINT, credential=DefaultAzureCredential())
