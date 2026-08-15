@@ -6,6 +6,7 @@ Udemy 講座 **「AI-103 Developing AI Apps and Agents 試験対策講座」** �
 
 ## 前提環境
 - **Azure サブスクリプション**（従量課金。一部 Preview 機能はリージョン/申請制約あり）
+  - ⚠️ **作りたてのサブスクリプションでは、最新世代モデルのデプロイが `insufficient quota` で失敗することがあります。** Foundry はサブスクリプションごとに**クォータティア**（最下位＝Free Tier / Tier 0 〜 Tier 6）を割り当てており、最下位ティアで既定クォータが付くのは `gpt-4.1-mini` / `gpt-5-mini` / `o4-mini` / `text-embedding-3-small` の4モデルだけです。各レッスンの `.env` はモデル名を環境変数にしてあるので、**使えるモデルに差し替えればハンズオンは実施できます**（詳細と代替の組み合わせ：[`01_plan_manage/L1-1_model_selection/README.md`](01_plan_manage/L1-1_model_selection/README.md#クォータ不足でモデルをデプロイできないとき)）。**リージョンを変えても解決しません。**
 - **Microsoft Foundry** プロジェクト（ポータル：https://ai.azure.com ）
 - **Python 3.11+** ／ 仮想環境（venv）／ VS Code（推奨：Dev Container）
 - **Azure CLI**（`az login`）＋ Microsoft Entra ID 認証（**キーレス**を第一選択）
