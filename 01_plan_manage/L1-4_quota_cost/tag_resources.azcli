@@ -8,12 +8,17 @@ $RG = "rg-ai103-handson"
 $FOUNDRY = "<foundry-resource-name>"          # Foundry(Cognitive Services / AIServices) リソース名
 $SUB = "<your-subscription-id>"
 
-# 1) リソースグループにタグを付ける (タグ継承の起点にもなる)
-az tag create `
+# 1) リソースグループにタグを付ける (merge = 既存タグを保持して追加)
+#    ⚠️ az tag create は「全置換」で、既存タグが消える。使い回すリソースグループでは merge を使う。
+az tag update `
   --resource-id "/subscriptions/$SUB/resourceGroups/$RG" `
+  --operation merge `
   --tags project=ai103-course env=dev costcenter=training owner=you@example.com
 
-# 2) Foundry リソース単体にタグを付ける (--operation merge で既存タグを保持して追加)
+# 2) Foundry リソース単体にタグを付ける
+#    ⚠️ リソースは「リソースグループのタグを継承しない」。コスト集計に効かせるには
+#       リソース自身にタグを付けるか、Cost Management の「タグ継承」設定を有効にする
+#       (EA/MCA/MPA のみ。使用量レコードに適用され、反映は 8〜24 時間)。
 $FOUNDRY_ID = az cognitiveservices account show -n $FOUNDRY -g $RG --query id -o tsv
 az tag update --resource-id $FOUNDRY_ID --operation merge `
   --tags project=ai103-course env=dev costcenter=training
@@ -25,6 +30,8 @@ az tag list --resource-id $FOUNDRY_ID -o jsonc
 # Azure ポータル > Cost Management > Cost analysis で、
 #   Group by = Tag「project」/ または Add filter で Tag=project を選ぶと
 #   タグ別にコストを集計できる。
+# ⚠️ すぐには出ない: タグ別のコストは「タグが付いていた期間の使用量」にだけ付き、
+#    過去分に遡って適用されない。反映にも最大 24 時間かかる。
 # Foundry プロジェクトには `project` タグが自動付与されるため、
 #   プロジェクト単位の chargeback(プレビュー) は手動タグ無しでも可能。
 #
@@ -34,3 +41,7 @@ az tag list --resource-id $FOUNDRY_ID -o jsonc
 #   --time-grain Monthly --resource-group $RG `
 #   --start-date 2026-07-01 --end-date 2027-07-01
 # ※ しきい値通知/Action Group の設定はポータルが分かりやすい。
+
+# --- 後片付け (任意) ---
+# 付けたタグだけ消す (リソースグループごとの削除はしない: 後続レッスンで使い回す)
+# az tag update --resource-id $FOUNDRY_ID --operation delete --tags project=ai103-course
