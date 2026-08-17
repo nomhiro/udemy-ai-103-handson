@@ -1,8 +1,9 @@
 """L1-4 実践(1/3): クォータ消費と利用可能容量をプログラムで確認する。
 
-Azure Resource Manager(ARM) の 2 つの REST API を、キーレス認証
+Azure Resource Manager(ARM) の 3 つの REST API を、キーレス認証
 (DefaultAzureCredential / az login 済みの資格情報) で呼び出す。
 
+- quotaTiers API      : サブスクリプションのクォータティア(等級)。「そもそも割り当てが付くモデルか」の土台
 - Usages API          : サブスク×リージョンの全クォータ行 (現在使用量 currentValue / 上限 limit)
 - Model Capacities API: あるモデルを「どこに・どれだけデプロイできるか」(デプロイ前の事前チェック)
 
@@ -19,6 +20,7 @@ load_dotenv()
 SUBSCRIPTION_ID = os.getenv("AZURE_SUBSCRIPTION_ID")
 LOCATION = os.getenv("QUOTA_LOCATION", "eastus")
 API_VERSION = "2024-10-01"  # ※収録時に最新の api-version を確認
+TIERS_API_VERSION = "2025-10-01-preview"  # quotaTiers は執筆時点でプレビュー
 
 # Model Capacities API 用 (任意)
 MODEL_NAME = os.getenv("MODEL_NAME", "gpt-5.4")
@@ -31,6 +33,34 @@ ARM = "https://management.azure.com"
 credential = DefaultAzureCredential()
 token = credential.get_token("https://management.azure.com/.default")
 HEADERS = {"Authorization": f"Bearer {token.token}"}
+
+
+def show_quota_tier():
+    """quotaTiers API: サブスクリプションのクォータティア(等級)を表示。
+
+    ティアの表に載っているモデルにしか既定クォータが付かないため、
+    「カタログにあるのにデプロイできない (insufficient quota)」の切り分けは、まずここを見る。
+    最下位ティア(Free Tier / Tier 0)で割り当てが付くのは 4 モデルだけ。
+    """
+    url = (
+        f"{ARM}/subscriptions/{SUBSCRIPTION_ID}"
+        f"/providers/Microsoft.CognitiveServices/quotaTiers"
+        f"?api-version={TIERS_API_VERSION}"
+    )
+    print("\n===== クォータティア (このサブスクリプションの等級) =====")
+    try:
+        res = requests.get(url, headers=HEADERS, timeout=30)
+        res.raise_for_status()
+    except requests.HTTPError as ex:
+        # プレビュー API なので、未提供リージョン/権限不足でも後続を止めない
+        print(f"(ティアを取得できませんでした: {ex})")
+        return
+
+    for item in res.json().get("value", []):
+        props = item.get("properties", {})
+        print(f"現在のティア: {props.get('currentTierName', '不明')}")
+        print(f"割り当て日   : {props.get('assignmentDate', '-')}")
+        print(f"昇格ポリシー : {props.get('tierUpgradePolicy', '-')}")
 
 
 def list_usages():
@@ -83,6 +113,7 @@ def main():
         print("AZURE_SUBSCRIPTION_ID が未設定です。.env を確認してください。")
         return
     try:
+        show_quota_tier()
         list_usages()
         list_model_capacities()
     except requests.HTTPError as ex:
